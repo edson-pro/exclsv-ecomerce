@@ -1,0 +1,348 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmailVerifications {
+  id    Int    @id @default(autoincrement())
+  email String @unique(map: "emailverifications_email_unique") @db.VarChar(255)
+  code  Int
+}
+
+model PasswordResets {
+  id    Int    @id @default(autoincrement())
+  email String @unique(map: "passwordresets_email_unique") @db.VarChar(255)
+  token String @db.VarChar(255)
+}
+
+model Category {
+  id            String              @id
+  name          String              @db.VarChar(255)
+  photo         String?             @db.VarChar(255)
+  description   String              @db.VarChar(255)
+  parent_id     String?
+  createdAt     DateTime            @default(now()) @db.Timestamp()
+  products      ProductCategories[]
+  brands        BrandCategory[]
+  subCategories Category[]          @relation("subCategories")
+  parent        Category?           @relation("subCategories", fields: [parent_id], references: [id])
+}
+
+model Brand {
+  id          String          @id @unique
+  name        String          @db.VarChar(255)
+  description String?         @db.VarChar(255)
+  logo        String?         @db.VarChar(255)
+  createdAt   DateTime        @default(now()) @db.Timestamp()
+  categories  BrandCategory[]
+  products    Product[]
+}
+
+model BrandCategory {
+  id          Int      @id @default(autoincrement())
+  category_id String
+  category    Category @relation(fields: [category_id], references: [id])
+  brand_id    String
+  brand       Brand    @relation(fields: [brand_id], references: [id])
+  createdAt   DateTime @default(now()) @db.Timestamp()
+
+  @@index([category_id, brand_id])
+}
+
+model DiscounUsage {
+  createdAt   DateTime  @default(now()) @db.Timestamp()
+  id          Int       @id @default(autoincrement())
+  order_id    Int?      @unique
+  order       Order?    @relation(fields: [order_id], references: [id])
+  used        Boolean
+  user        User      @relation(fields: [user_id], references: [id])
+  discount_id Int?
+  discount    Discount? @relation(fields: [discount_id], references: [id])
+  user_id     Int
+  cart_id     Int?      @unique
+  cart        Cart?     @relation(fields: [cart_id], references: [id])
+}
+
+model Discount {
+  id           Int            @id @default(autoincrement())
+  code         String         @unique @db.VarChar(255)
+  createdAt    DateTime       @default(now()) @db.Timestamp()
+  usages       DiscounUsage[]
+  start        DateTime       @db.Timestamp()
+  end          DateTime       @db.Timestamp()
+  greater_than Float
+  status       String?        @db.VarChar(255)
+  once_usage   Boolean
+  type         String         @db.VarChar(255)
+  value        Float
+  mode         String         @db.VarChar(255)
+}
+
+model Inventory {
+  id         Int      @id @default(autoincrement())
+  stock      Int      @default(0)
+  low_stock  Int
+  incoming   Int?
+  commited   Int?
+  variant    Variant? @relation(fields: [variant_id], references: [id])
+  product    Product? @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  variant_id Int?     @unique
+  product_id Int?     @unique
+  createdAt  DateTime @default(now()) @db.Timestamp()
+}
+
+model Supplier {
+  id        Int        @id @default(autoincrement())
+  name      String
+  address   String
+  phone     String
+  email     String?
+  country   String
+  photo     String?
+  createdAt DateTime   @default(now()) @db.Timestamp()
+  transfers Transfer[]
+}
+
+model TransferProduct {
+  id          Int       @id @default(autoincrement())
+  product_id  Int?
+  product     Product?  @relation(fields: [product_id], references: [id], onDelete: SetNull)
+  variant_id  Int?
+  variant     Variant?  @relation(fields: [variant_id], references: [id])
+  transfer    Transfer? @relation(fields: [transfer_id], references: [id])
+  transfer_id Int?
+  quantity    Int?
+  accepted    Int?
+  rejected    Int?
+}
+
+model Transfer {
+  id                Int               @id @default(autoincrement())
+  status            String
+  tags              String[]
+  supplier          Supplier?         @relation(fields: [supplierId], references: [id])
+  estimated_arrival DateTime          @db.Timestamp()
+  products          TransferProduct[]
+  createdAt         DateTime          @default(now()) @db.Timestamp()
+  supplierId        Int?
+}
+
+model Deal {
+  id         Int       @id @default(autoincrement())
+  product_id Int?      @unique
+  created_at DateTime  @default(now()) @db.Timestamp()
+  exipiry    DateTime? @db.Timestamp()
+  product    Product?  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id               Int                 @id @default(autoincrement())
+  images           String[]
+  price            Float
+  free_shipping    Boolean
+  name             String              @db.VarChar(255)
+  createdAt        DateTime            @default(now()) @db.Timestamp()
+  content          String              @db.Text
+  metadata         Json?
+  brand            Brand?              @relation(fields: [brand_id], references: [id])
+  currency         String
+  manufacturer     String
+  condition        String?             @db.VarChar(255)
+  variants         Variant[]
+  tags             String[]
+  status           String?
+  description      String?             @db.Text
+  initial_price    Int?
+  gender           String?
+  color            String?
+  discount         ProductDiscount?
+  inventory        Inventory?
+  reviews          Review[]
+  orders           OrderProducts[]
+  carts            CartProducts[]
+  categories       ProductCategories[]
+  TransferProducts TransferProduct[]
+  deals            Deal?
+  brand_id         String?
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(255)
+  tag       String?  @db.VarChar(255)
+  subtitle  String   @db.Text
+  image     String   @db.VarChar(255)
+  type      String   @db.VarChar(255)
+  action    String   @db.VarChar(255)
+  link      String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+}
+
+model Blog {
+  id          String   @id @unique
+  title       String   @db.VarChar(255)
+  description String   @db.Text()
+  tags        String[]
+  category    String   @db.VarChar(255)
+  image       String   @db.VarChar(255)
+  content     String   @db.Text()
+  creator_id  Int
+  createdAt   DateTime @default(now()) @db.Timestamp(0)
+  creator     User     @relation(fields: [creator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "creator_user_id_foreign")
+}
+
+model ProductDiscount {
+  id         Int             @id @default(autoincrement())
+  type       String          @db.VarChar(255)
+  value      Int
+  start      DateTime        @db.Timestamp()
+  end        DateTime        @db.Timestamp()
+  product_id Int?            @unique
+  product    Product?        @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  orders     OrderProducts[]
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  message    String   @db.VarChar(255)
+  user_id    Int
+  rating     Int
+  createdAt  DateTime @default(now()) @db.Timestamp()
+  product_id Int
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "review_property_id_foreign")
+  user       User     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "review_user_id_foreign")
+}
+
+model OrderProducts {
+  id          Int              @id @default(autoincrement())
+  quantity    Int
+  product_id  Int
+  variant_id  Int?
+  variant     Variant?         @relation(fields: [variant_id], references: [id])
+  product     Product          @relation(fields: [product_id], references: [id], onDelete: SetNull)
+  order_id    Int
+  order       Order            @relation(fields: [order_id], references: [id])
+  discount_id Int?
+  discount    ProductDiscount? @relation(fields: [discount_id], references: [id])
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  status    String   @db.VarChar(255)
+  method    String   @db.VarChar(255)
+  amount    Float
+  user_id   Int
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  user      User     @relation(fields: [user_id], references: [id])
+  order     Order?
+}
+
+model Address {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  first_name String?  @db.VarChar(255)
+  last_name  String?  @db.VarChar(255)
+  street_1   String?  @db.VarChar(255)
+  street_2   String?  @db.VarChar(255)
+  city       String?  @db.VarChar(255)
+  province   String?  @db.VarChar(255)
+  zip_code   String?  @db.VarChar(255)
+  phone      String?  @db.VarChar(255)
+  createdAt  DateTime @default(now()) @db.Timestamp()
+  orders     Order[]
+}
+
+model ProductCategories {
+  id          Int      @id @default(autoincrement())
+  product_id  Int
+  order       Int      @default(0)
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  category_id String
+  category    Category @relation(fields: [category_id], references: [id])
+
+  @@index([product_id, category_id])
+}
+
+model Variant {
+  id               Int               @id @default(autoincrement())
+  price            Int?
+  image            String?           @db.VarChar(255)
+  name             String?           @db.VarChar(255)
+  product_id       Int?
+  product          Product?          @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  options          Json?
+  CartProducts     CartProducts[]
+  OrderProducts    OrderProducts[]
+  inventory        Inventory?
+  TransferProducts TransferProduct[]
+}
+
+model Order {
+  id         Int             @id @default(autoincrement())
+  user_id    Int
+  notes      String?         @db.VarChar(255)
+  address_id Int
+  address    Address         @relation(fields: [address_id], references: [id])
+  user       User            @relation(fields: [user_id], references: [id])
+  products   OrderProducts[]
+  createdAt  DateTime        @default(now()) @db.Timestamp()
+  status     String?         @db.VarChar(255)
+  payment_id Int?            @unique
+  payment    Payment?        @relation(fields: [payment_id], references: [id])
+  discount   DiscounUsage?
+}
+
+model CartProducts {
+  id         Int      @id @default(autoincrement())
+  quantity   Int
+  product_id Int
+  variant_id Int?
+  variant    Variant? @relation(fields: [variant_id], references: [id])
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  Cart       Cart?    @relation(fields: [cart_id], references: [id])
+  cart_id    Int?
+  createdAt  DateTime @default(now()) @db.Timestamp()
+}
+
+model Cart {
+  id             Int            @id @default(autoincrement())
+  user_id        Int            @unique
+  discount_usage DiscounUsage?
+  user           User           @relation(fields: [user_id], references: [id])
+  products       CartProducts[]
+}
+
+model User {
+  id               Int            @id @default(autoincrement())
+  email            String         @unique(map: "user_email_unique") @db.VarChar(255)
+  password         String?        @db.VarChar(255)
+  username         String         @db.VarChar(255)
+  first_name       String?        @db.VarChar(255)
+  last_name        String?        @db.VarChar(255)
+  country          String?        @db.VarChar(255)
+  birth            String?        @db.VarChar(255)
+  phone            String?        @db.VarChar(255)
+  photo            String?        @db.VarChar(255)
+  address          String?        @db.VarChar(255)
+  provider         String?        @db.VarChar(255)
+  gender           String?        @db.VarChar(255)
+  emailVerified    Boolean?
+  phoneVerfied     Boolean?
+  createdAt        DateTime       @default(now()) @db.Timestamp()
+  isAdmin          Boolean?       @default(true)
+  defaultAddressId Int?
+  reviews          Review[]
+  orders           Order[]
+  payments         Payment[]
+  addresses        Address[]
+  cart             Cart?
+  DiscounUsage     DiscounUsage[]
+  Blog             Blog[]
+  isDeleted        Boolean        @default(false)
+}

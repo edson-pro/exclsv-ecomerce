@@ -1,0 +1,101 @@
+export const getSelectStyles = ({ error }) => {
+  return {
+    option: (provided: any, state: any) => ({
+      ...provided,
+      fontWeight: state.isSelected ? "600" : "normal",
+      color: "#9ea4b0",
+      backgroundColor: "white",
+      fontSize: "13px",
+    }),
+    menu: (provided: any, state: any) => ({
+      ...provided,
+      backgroundColor: "white",
+      border: `1px solid #cccccc`,
+      color: state.selectProps.menuColor,
+      fontWeight: "600",
+    }),
+    control: (provided) => ({
+      backgroundColor: "white",
+      border: `1px solid ${error ? "#ff0057" : "#cccccc"}`,
+      width: "100%",
+      borderRadius: "5px",
+      display: "flex",
+      padding: "2px 0px",
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      fontSize: "13px",
+      color: "#9ea4b0",
+      fontWeight: "600",
+      textTransform: "capitalize",
+    }),
+    input: (provided) => ({
+      ...provided,
+      fontSize: "13px",
+      color: "#9ea4b0",
+      fontWeight: "600",
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      fontSize: "13px",
+      fontWeight: "600",
+      color: "#9ea4b0",
+    }),
+    loadingMessage: () => ({
+      fontSize: "13px",
+      display: "flex",
+      justifyContent: "center",
+      padding: "10px",
+      color: "#9ea4b0",
+    }),
+    noOptionsMessage: () => ({
+      fontSize: "13px",
+      display: "flex",
+      justifyContent: "center",
+      padding: "10px",
+      color: "#9ea4b0",
+    }),
+    dropdownIndicator: () => ({
+      display: "flex",
+      padding: "12px",
+      transition: "color 150ms ease 0s",
+      svg: {
+        color: "#9ea4b0",
+        height: "15px",
+        width: "15px",
+      },
+    }),
+    indicatorsContainer: () => ({
+      display: "flex",
+      alignItems: "center",
+      transition: "color 150ms ease 0s",
+      svg: {
+        color: "#9ea4b0",
+        height: "15px",
+        width: "15px",
+      },
+    }),
+    multiValue: () => ({
+      backgroundColor: "#ededed",
+      display: "flex",
+      margin: "4px 5px",
+      textTransform: "capitalize",
+      borderRadius: "5px",
+      alignItems: "center",
+      padding: "5px 10px",
+    }),
+    multiValueLabel: () => ({
+      color: "#9ea4b0",
+      textTransform: "capitalize",
+      marginRight: "5px",
+      fontSize: "13px",
+      fontWeight: "600",
+    }),
+    multiValueRemove: () => ({
+      display: "flex",
+      textTransform: "capitalize",
+      color: "#9ea4b0",
+      alignItems: "center",
+    }),
+  };
+};
